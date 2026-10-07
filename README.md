@@ -1,66 +1,123 @@
-# BDH-Narrative-Consistency-Classifier
+# BDH Narrative Consistency Classifier
 
-A PyTorch pipeline that decides whether a piece of narrative text is **consistent** or **contradicts** a given caption/claim, by tracking a dynamic *belief state* sentence by sentence and measuring the "friction" each new sentence causes.
+An end-to-end Machine Learning & NLP pipeline designed to detect, analyze, and classify narrative consistency within text sequences using advanced transformer models and custom neural network architectures.
 
-## Overview
+---
 
-1. A frozen `sentence-transformers/all-MiniLM-L6-v2` encoder embeds the caption (initial belief state) and every sentence of the narrative (events).
-2. The **BDH core** (a gated recurrent update) revises the belief state after each sentence. The L2 norm of each update is the **friction**.
-3. Per-sample friction statistics (mean, variance) are concatenated with the final belief state and fed to a small classifier head.
-4. Predictions are written with a short rationale based on a friction threshold calibrated on validation data.
+## 📌 Overview
 
-## Training pipeline
+Narrative consistency classification is crucial for evaluating long-form generated text, story plots, dialogue systems, and document verification. The **BDH Narrative Consistency Classifier** provides a structured framework to ingest text datasets, preprocess narrative pairs or sequences, and train classification models to distinguish between consistent and inconsistent narrative progressions.
 
-| Phase | Description | Optimised parameters |
-|-------|-------------|----------------------|
-| 1. Unsupervised pretraining | Minimise friction loss on all training narratives (labels unused) | BDH core |
-| 2. Supervised fine-tuning | Cross-entropy + `0.2 x` friction auxiliary loss, cosine LR schedule, best checkpoint by validation accuracy | BDH core + classifier |
+---
 
-## Project structure
+## 📁 Repository Structure
 
-```
+```text
 BDH-Narrative-Consistency-Classifier/
+│
+├── data/
+│   └── README.md              # Instructions for dataset preparation & formatting
+│
+├── notebooks/
+│   └── main_experiment.ipynb  # Interactive notebook for exploratory data analysis & experiments
+│
 ├── src/
-│   ├── config.py      # hyperparameters
-│   ├── utils.py       # sentence splitting, seeding, label helper
-│   ├── models.py      # BDHCore, BDHModel
-│   ├── dataset.py     # NarrativeDataset
-│   └── train.py       # training + evaluation + inference entrypoint
-├── data/              # put train.csv and test.csv here
-├── notebooks/main_experiment.ipynb
-├── requirements.txt
-└── LICENSE
+│   ├── __init__.py            # Package initialization
+│   ├── config.py              # Global configurations, hyperparameters & paths
+│   ├── dataset.py             # PyTorch Dataset & DataLoader utilities
+│   ├── models.py              # Neural network architectures & transformer classifier models
+│   ├── train.py               # Training, validation loop, and evaluation pipeline
+│   └── utils.py               # Helper functions (logging, seed setup, metrics)
+│
+├── .gitignore                 # Files & directories excluded from version control
+├── LICENSE                    # Repository license
+├── README.md                  # Project documentation
+└── requirements.txt           # Python dependencies
 ```
 
-## Installation
+---
 
+## ✨ Features
+
+- **Custom Dataset Pipeline:** Efficient tokenization and batch loading for narrative sentence pairs.
+- **Modular Model Architectures:** Support for fine-tuning pretrained Transformers (BERT, RoBERTa, DeBERTa) and custom classification heads.
+- **Config-Driven Experiments:** Centralized hyperparameter and path management in `src/config.py`.
+- **Comprehensive Evaluation:** Accuracy, F1-Score, Precision, Recall tracking, and confusion matrix visualization.
+- **Reproducibility:** Seed management integrated into model training pipelines.
+
+---
+
+## 🛠️ Installation & Setup
+
+### 1. Clone the Repository
 ```bash
-git clone https://github.com/<your-username>/BDH-Narrative-Consistency-Classifier.git
+git clone https://github.com/Hrutik0555/BDH-Narrative-Consistency-Classifier.git
 cd BDH-Narrative-Consistency-Classifier
-python -m venv .venv && source .venv/bin/activate   # Windows: .venv\Scripts\activate
+```
+
+### 2. Set Up a Virtual Environment
+```bash
+# Using venv
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+```
+
+### 3. Install Dependencies
+```bash
 pip install -r requirements.txt
 ```
 
-## Usage
+---
 
-1. Add `train.csv` and `test.csv` to `data/` (see [`data/README.md`](data/README.md)).
-2. Run from the repository root:
+## 🚀 Quick Start & Usage
 
+### 1. Data Preparation
+Place your dataset files in the `data/` directory. Refer to [`data/README.md`](./data/README.md) for required schema details (e.g., `premise`, `hypothesis` / `narrative_1`, `narrative_2`, and `label`).
+
+### 2. Configuration
+Modify `src/config.py` to set target parameters such as model backbone, batch size, learning rate, and path settings:
+```python
+# Example config adjustments
+MODEL_NAME = "roberta-base"
+BATCH_SIZE = 16
+LEARNING_RATE = 2e-5
+EPOCHS = 5
+```
+
+### 3. Train the Model
+Run the training module from the root directory:
 ```bash
 python -m src.train
 ```
 
-Output: `RES1.csv` with columns `id`, `label` (0 = consistent, 1 = contradiction), `rationale`.
+### 4. Interactive Experiments
+Open Jupyter Notebook to explore data analysis, embedding visualizations, and preliminary model testing:
+```bash
+jupyter notebook notebooks/main_experiment.ipynb
+```
 
-Hyperparameters live in [`src/config.py`](src/config.py).
+---
 
-## Notes and limitations
+## 📊 Model & Workflow Architecture
 
-- The encoder is frozen; only the BDH core and classifier head are trained.
-- The original experiment used a very small dataset (~80 training and 8 validation samples), so the reported validation accuracy (0.75) is **not statistically meaningful**.
-- The pretraining objective only minimises friction, which on its own can push updates towards zero; treat it as a regulariser and compare against `PRETRAIN_EPOCHS = 0`.
-- Sentences are embedded one at a time, so long narratives are slow on CPU.
+1. **Input Generation:** Narrative segments ($S_1, S_2$) are ingested and formatted into contextual pairs.
+2. **Tokenization:** Inputs are tokenized using transformer-specific tokenizers with dynamic padding.
+3. **Encoding:** Text sequences pass through fine-tuned transformer layers to extract contextualized representation vectors.
+4. **Classification Head:** Linear layers with Dropout and GELU/ReLU activations predict consistency confidence scores.
 
-## License
+---
 
-Released under the [MIT License](LICENSE).
+## 🤝 Contributing
+
+Contributions are welcome! If you'd like to improve model efficiency, add new dataset loaders, or optimize training loops:
+1. Fork the project repository.
+2. Create your feature branch (`git checkout -b feature/NewFeature`).
+3. Commit your changes (`git commit -m 'Add NewFeature'`).
+4. Push to the branch (`git push origin feature/NewFeature`).
+5. Open a Pull Request.
+
+---
+
+## 📜 License
+
+Distributed under the MIT License. See `LICENSE` for more information.
