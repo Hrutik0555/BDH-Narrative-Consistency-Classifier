@@ -1,0 +1,43 @@
+# Byte-compiled / cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environments
+.venv/
+venv/
+env/
+.env
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Packaging
+build/
+dist/
+*.egg-info/
+
+# PyTorch / model artifacts
+*.pt
+*.pth
+*.ckpt
+*.bin
+*.safetensors
+runs/
+lightning_logs/
+wandb/
+
+# Hugging Face cache
+.cache/
+huggingface/
+
+# Data and outputs
+data/*.csv
+RES1.csv
+*.zip
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
